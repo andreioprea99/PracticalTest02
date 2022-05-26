@@ -44,9 +44,25 @@ public class CommunicationThread extends Thread {
         this.socket = socket;
     }
 
+    private long getTime() {
+        try {
+            HttpClient httpClient = new DefaultHttpClient();
+            HttpGet httpGet = new HttpGet("http://worldtimeapi.org/api/ip");
+            HttpResponse httpGetResponse = null;
+            httpGetResponse = httpClient.execute(httpGet);
+            HttpEntity entity = httpGetResponse.getEntity();
+            JSONObject jsonObject = new JSONObject(entity.toString());
+            return Long.parseLong(jsonObject.getString("unixtime"));
+
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
     @Override
     public void run() {
         String key, value = "", op, response;
+        long time = 0;
         if (socket == null) {
             Log.e(Constants.TAG, "[COMMUNICATION THREAD] Socket is null!");
             return;
@@ -84,6 +100,9 @@ public class CommunicationThread extends Thread {
                     response = null;
                 }
             } else {
+                Log.i(Constants.TAG, "[COMMUNICATION THREAD] Getting the information from the webservice...");
+                time = getTime();
+                Log.i(Constants.TAG, "Request recieved at" + time);
                 data.put(key, value);
                 response = "Succesfully added " + key + " : " + value;
             }
